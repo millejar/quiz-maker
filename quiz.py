@@ -2,6 +2,7 @@ import xlrd
 import colorama
 from colorama import Fore, Back, Style
 colorama.init()
+import helper_functions
 excel_file = (r'D:\Documents\Excel Data Files\Greece.xlsx')
 # Open the workbook
 try: 
@@ -17,7 +18,6 @@ xl_sheet = xl_workbook.sheet_by_name('Sheet1')
 
 # Print the first column
 first_column = xl_sheet.col(0)
-print(xl_sheet.nrows)
 
 import random
 print ("\n ******************************* \n")
@@ -30,63 +30,24 @@ for number in range(0, xl_sheet.nrows, 1):
 print(available_numbers)
 while (user_continue == True): 
     print("\n ******* \n")
-    # Pick a random number from available_numbers, then remove it
-    random_number = random.choice(available_numbers)
-    available_numbers.remove(random_number)
+    # Pick a random row from available_numbers, then remove it
+    random_row = random.choice(available_numbers)
+    available_numbers.remove(random_row)
     # Print the correct answer
-    correct_answer = xl_sheet.cell_value(random_number, 0) 
-    print("The correct answer is: ", correct_answer)
+    correct_answer = xl_sheet.cell_value(random_row, 0)
+    #print("The correct answer is: ", correct_answer)
+    # Print the clue
     print(Fore.CYAN + "Here is the description:" + Fore.RESET)
-    print(xl_sheet.cell_value(random_number, 1))
-    keep_guessing = True
-    while (keep_guessing == True):
-        while True:
-            try: 
-                answer = input(Fore.GREEN + "What is the answer? " + Fore.RESET)
-                break
-            except: 
-                print(Fore.RED + "Please enter a valid response" + Fore.RESET)
-                continue
-        if (correct_answer.upper() == answer.upper()):
-            print("That is correct")
-            keep_guessing = False
-        else:
-            print("Sorry, that is incorrect")
-            validate = False
-            while (validate == False):
-                try: 
-                    response = input("Try Again (T) or Skip (S) ")
-                except: 
-                    print(Fore.RED + "Please type either T or S" + Fore.RESET)
-                    continue
-                if (response.upper() == "T" or response.upper() == "TRY AGAIN"):
-                    validate = True
-                elif (response.upper() == "S" or response.upper() == "SKIP"):
-                    validate = True
-                    keep_guessing = False
-                    available_numbers.append(random_number)
-                else:
-                    print(Fore.RED + "Please Type T or S" + Fore.RESET)
-    
-    validate = False
-    while (validate == False):
-        if (available_numbers == []):
-            break
-        try:
-            response = input("Would you like to keep going (Y/N)? ")
-        except:
-            print(Fore.RED + "Please type either Y or N" + Fore.RESET)
-            continue
-        if (response.upper() == "Y" or response.upper() == "YES"):
-            validate = True
-        elif (response.upper() == "N" or response.upper() == "NO"):
-            validate = True
-            user_continue = False
-        else:
-            print(Fore.RED + "Please type either Y or N" + Fore.RESET)
-    
+    print(xl_sheet.cell_value(random_row, 1))
+    # Ask for the answer 
+    response = helper_functions.user_answer(correct_answer, random_row, available_numbers)
+    available_numbers = response[0]
+    user_continue = response[1]
+    # If all clues have been used up, finish the game, else ask the user if they wish to continue
     if (available_numbers == []):
-        print("You've answered every clue! Congradulations!")
+        print("You've answered every clue! Congratulations!")
+        break
+    if (user_continue == False):
         break
 
 print("Thanks for playing!")
