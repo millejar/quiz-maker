@@ -3,19 +3,19 @@ import colorama
 from colorama import Fore, Back, Style
 colorama.init()
 import helper_functions
-excel_file = (r'D:\Documents\Excel Data Files\Greece.xlsx')
+excel_file = (r'D:\Documents\Quiz Data Files\Greece.xlsx')
 # Open the workbook
 try: 
     xl_workbook = xlrd.open_workbook(excel_file)
 except: 
-    print("Could not open excel file")
+    print(Fore.RED + "Could not open excel file" + Fore.RESET)
 
 # Retrieve and print the sheetnames
 sheet_names = xl_workbook.sheet_names()
 sheet_number = helper_functions.get_sheet(sheet_names)
 
 # You can either open a sheet by name or by index
-xl_sheet = xl_workbook.sheet_by_index(sheet_number)
+xl_sheet = xl_workbook.sheet_by_index(sheet_number - 1)
 
 # Print the first column
 first_column = xl_sheet.col(0)

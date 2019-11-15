@@ -2,6 +2,7 @@ import colorama
 from colorama import Fore, Back, Style
 colorama.init()
 from PIL import Image
+import math
 
 def test_user(row_values, row_number, available_numbers):
     user_continue = True
@@ -30,7 +31,7 @@ def test_user(row_values, row_number, available_numbers):
 
 def get_answer(correct_answer, row_number, available_numbers, answer_type, reappend):
     user_continue = True
-    hint_level = 0
+    hint_levels = 0
     keep_guessing = True
     correct_answers = correct_answer.split(";")
     while (keep_guessing == True):
@@ -49,7 +50,7 @@ def get_answer(correct_answer, row_number, available_numbers, answer_type, reapp
             keep_guessing = False
             reappend = True
         elif (answer.upper() == "H" or answer.upper() == "HINT"):
-            hint_level = produce_hint(correct_answers[0], hint_level)
+            hint_levels = produce_hint(correct_answers[0], hint_levels)
         elif (answer.upper() == "Q" or answer.upper() == "QUIT"):
             keep_guessing = False
             user_continue = False
@@ -57,7 +58,6 @@ def get_answer(correct_answer, row_number, available_numbers, answer_type, reapp
             correct_response = False
             for correct_answer in correct_answers:
                 correct_answer = correct_answer.strip()              # remove whitespace from beginning and end
-                print("Answer: " + correct_answer)
                 if (answer.upper() == correct_answer.upper()):
                     correct_response = True
             if (correct_response):
@@ -67,21 +67,38 @@ def get_answer(correct_answer, row_number, available_numbers, answer_type, reapp
                 print(Fore.RED + "Sorry, that is incorrect" + Fore.RESET)
     return [available_numbers, user_continue, reappend]
 
-def produce_hint(correct_answer, hint_level):
-    if (hint_level < len(correct_answer)):
-        hint_level += 1
+def produce_hint(correct_answer, hint_levels):
+
+    if (hint_levels % 2 == 0):
+        if (hint_levels <= (len(correct_answer)/2)-1):
+            hint_levels += 1
+    else:
+        if (hint_levels <= math.floor((len(correct_answer)/2))):
+            hint_levels += 1
+
+    unmasked_positions = []
+    for hint_level in range(hint_levels):
+        if (hint_level % 2 == 0):
+            unmasked_positions.append(hint_level)
+            unmasked_positions.append(hint_level + 1)
+        else:
+            unmasked_positions.append(len(correct_answer) - hint_level)
+            unmasked_positions.append(len(correct_answer) - hint_level - 1)
+
     hint = list(correct_answer)
-    for index in range(hint_level, len(correct_answer)):
-        hint[index] = "*"
+    for index in range(len(correct_answer)):
+        if index not in unmasked_positions:
+            hint[index] = "*"
     print(''.join(hint))
-    return hint_level
+
+    return hint_levels
 
 def get_sheet(sheet_names):
     print("Number of Sheets: ", len(sheet_names))
-    sheet_number = 0
+    sheet_number = 1
     if (len(sheet_names) > 1):
         print("Sheet Names: ")
-        idx = 0
+        idx = 1
         for sheet_name in sheet_names:
             print("Number: ", Fore.GREEN, idx, Fore.RESET, " Name: ", Fore.GREEN, 
             sheet_name, Fore.RESET)
@@ -93,13 +110,13 @@ def get_sheet(sheet_names):
             except:
                 print(Fore.RED + "Please enter an integer" + Fore.RESET)
                 continue
-            if (sheet_number < 0 or sheet_number > len(sheet_names)-1):
-                print(Fore.RED + "Please an integer between 0 and " + str(len(sheet_names)-1) + Fore.RESET)
+            if (sheet_number < 1 or sheet_number > len(sheet_names)):
+                print(Fore.RED + "Please an integer between 1 and " + str(len(sheet_names)) + Fore.RESET)
                 continue
             else:
                 break
     else:
-        sheet_number = 0
+        sheet_number = 1
     return sheet_number
 
 def give_description(row_values):
