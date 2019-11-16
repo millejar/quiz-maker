@@ -1,39 +1,63 @@
+
+from tkinter import filedialog
 import colorama
 from colorama import Fore, Back, Style
 colorama.init()
 from PIL import Image
 import math
 
+
+
+def import_excel_minimalist(): 
+    return filedialog.askopenfilename()
+
+
 def test_user(row_values, row_number, available_numbers):
     user_continue = True
     reappend = False
+    topics_need_work = []
+    # if the keyword is a number convert to string to avoid errors
+    if (type(row_values[0]) is float):
+        str(row_values[0])
+    correct_answers = row_values[0].split(";")      # extract all possible correct answers (diliminated by ";" into a list)
     # If an artist is listed, ask for it
     if (row_values[3] != ""):
-        response = get_answer(row_values[3], row_number, available_numbers, "artist", reappend)
+        response = get_answer(row_values[3].split(";"), row_number, available_numbers, "artist", reappend)
         available_numbers = response[0]
         user_continue = response[1]
         reappend = response[2]
+        if (response[3]):
+            help_string = ("The artist of " + Style.DIM + Fore.GREEN + 
+            correct_answers[0] + Style.RESET_ALL + " is " + Fore.YELLOW + row_values[3] + Fore.RESET)
+            topics_need_work.append(help_string)
         # If they haven't quit, ask them for the name of the piece
     if (user_continue and row_values[2] != ""):
-        response = get_answer(row_values[0], row_number, available_numbers, "name of the piece", reappend)
+        response = get_answer(correct_answers, row_number, available_numbers, "name of the piece", reappend)
         available_numbers = response[0]
         user_continue = response[1]
         reappend = response[2]
+        if (response[3]):
+            help_string = ("Name of this piece: " + Fore.YELLOW + correct_answers[0] + Fore.RESET)
+            topics_need_work.append(help_string)
     # Else if not an art piece, ask for the keyword
     elif (user_continue):
-        response = get_answer(row_values[0], row_number, available_numbers, "answer", reappend)
+        response = get_answer(correct_answers, row_number, available_numbers, "answer", reappend)
         available_numbers = response[0]
         user_continue = response[1]
         reappend = response[2]
+        if (response[3]):
+            help_string = ("The keyword: " + Fore.YELLOW + correct_answers[0] + Fore.RESET)
+            topics_need_work.append(help_string)
     if (reappend or user_continue == False):
         available_numbers.append(row_number)
-    return [available_numbers, user_continue]
+    
+    return [available_numbers, user_continue, topics_need_work]
 
-def get_answer(correct_answer, row_number, available_numbers, answer_type, reappend):
+def get_answer(correct_answers, row_number, available_numbers, answer_type, reappend):
     user_continue = True
     hint_levels = 0
     keep_guessing = True
-    correct_answers = correct_answer.split(";")
+    needed_help = False
     while (keep_guessing == True):
         while True:
             # Ask for and validate user input
@@ -45,15 +69,18 @@ def get_answer(correct_answer, row_number, available_numbers, answer_type, reapp
             except: 
                 print(Fore.RED + "Please enter a valid response" + Fore.RESET)
                 continue
-        # If user skips, add the row back into the pool of options
-        if (answer.upper() == "S" or answer.upper() == "SKIP"):
+        # First check if a user wants to skip, get a hint, or quit
+        if (answer.upper() == "S" or answer.upper() == "SKIP"):     # If user skips, add the row back into the pool of options
             keep_guessing = False
             reappend = True
         elif (answer.upper() == "H" or answer.upper() == "HINT"):
             hint_levels = produce_hint(correct_answers[0], hint_levels)
+            needed_help = True
         elif (answer.upper() == "Q" or answer.upper() == "QUIT"):
             keep_guessing = False
             user_continue = False
+            needed_help = True
+        # Else if a guess is given, check for accuracy
         else:
             correct_response = False
             for correct_answer in correct_answers:
@@ -65,12 +92,13 @@ def get_answer(correct_answer, row_number, available_numbers, answer_type, reapp
                 keep_guessing = False
             else:
                 print(Fore.RED + "Sorry, that is incorrect" + Fore.RESET)
-    return [available_numbers, user_continue, reappend]
+                needed_help = True
+    return [available_numbers, user_continue, reappend, needed_help]
 
 def produce_hint(correct_answer, hint_levels):
 
     if (hint_levels % 2 == 0):
-        if (hint_levels <= (len(correct_answer)/2)-1):
+        if (hint_levels <= (len(correct_answer)/2)):
             hint_levels += 1
     else:
         if (hint_levels <= math.floor((len(correct_answer)/2))):
@@ -117,6 +145,7 @@ def get_sheet(sheet_names):
                 break
     else:
         sheet_number = 1
+    sheet_number -= 1 
     return sheet_number
 
 def give_description(row_values):
