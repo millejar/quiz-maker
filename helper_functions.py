@@ -88,6 +88,7 @@ def get_answer(correct_answers, row_number, available_numbers, answer_type, reap
                 if (answer.upper() == correct_answer.upper()):
                     correct_response = True
             if (correct_response):
+                print("\n" + Fore.GREEN + correct_answers[0] + Fore.RESET)
                 print(Fore.GREEN + "That is correct" + Fore.RESET)
                 keep_guessing = False
             else:

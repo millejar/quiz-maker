@@ -21,9 +21,8 @@ xl_sheet = xl_workbook.sheet_by_index(sheet_number)
 
 # Test the sheet to make sure it has (at least) 4 valid columns and two valid rows. 
 try:
-    for col_number in range(0,3):
+    for col_number in range(0,4):                       # 0, 1, 2, 3
         test = xl_sheet.cell_value(1, col_number)
-        print(test)
 except:
     print(Fore.RED + "The provided sheet does not fit the required format. " +
     "Please use the template and fill in the rows with data." + Fore.RESET)
