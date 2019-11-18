@@ -4,13 +4,31 @@ import colorama
 from colorama import Fore, Back, Style
 colorama.init()
 from PIL import Image
-import math
+from math import floor
+from os import path
 
-
-
-def import_excel_minimalist(): 
-    return filedialog.askopenfilename()
-
+def import_excel():
+    # if there is a save file, use the path from the file and ask the user
+    #   if they want to use that file or open a new file
+    if (path.exists("save_file.txt")):
+        file = open("save_file.txt", "r")
+        excel_file = file.read()
+        # if the file is empty, open a new file
+        if (excel_file == ""):
+            excel_file = filedialog.askopenfilename()
+        else:
+            response = input("The current file is " + Fore.YELLOW + excel_file + "\n" + 
+            Fore.CYAN + 'Hit Enter to use this file or "F" to use another' + Fore.RESET)
+            if (response.upper() == 'F'):
+                excel_file = filedialog.askopenfilename()
+    # else if there is no save file, open a new file 
+    else:
+        excel_file = filedialog.askopenfilename()
+    # save the file 
+    file = open("save_file.txt", "w+")
+    file.write(excel_file)
+    file.close()
+    return excel_file
 
 def test_user(row_values, row_number, available_numbers):
     user_continue = True
@@ -19,7 +37,8 @@ def test_user(row_values, row_number, available_numbers):
     # if the keyword is a number convert to string to avoid errors
     if (type(row_values[0]) is float):
         str(row_values[0])
-    correct_answers = row_values[0].split(";")      # extract all possible correct answers (diliminated by ";" into a list)
+     # extract all possible correct answers (diliminated by ";" into a list)
+    correct_answers = row_values[0].split(";")     
     # If an artist is listed, ask for it
     if (row_values[3] != ""):
         response = get_answer(row_values[3].split(";"), row_number, available_numbers, "artist", reappend)
@@ -30,7 +49,7 @@ def test_user(row_values, row_number, available_numbers):
             help_string = ("The artist of " + Style.DIM + Fore.GREEN + 
             correct_answers[0] + Style.RESET_ALL + " is " + Fore.YELLOW + row_values[3] + Fore.RESET)
             topics_need_work.append(help_string)
-        # If they haven't quit, ask them for the name of the piece
+    # If they haven't quit, ask them for the name of the piece
     if (user_continue and row_values[2] != ""):
         response = get_answer(correct_answers, row_number, available_numbers, "name of the piece", reappend)
         available_numbers = response[0]
@@ -39,7 +58,7 @@ def test_user(row_values, row_number, available_numbers):
         if (response[3]):
             help_string = ("Name of this piece: " + Fore.YELLOW + correct_answers[0] + Fore.RESET)
             topics_need_work.append(help_string)
-    # Else if not an art piece, ask for the keyword
+    # Else if not an art piece and user wants to continue, ask for the keyword
     elif (user_continue):
         response = get_answer(correct_answers, row_number, available_numbers, "answer", reappend)
         available_numbers = response[0]
@@ -74,7 +93,7 @@ def get_answer(correct_answers, row_number, available_numbers, answer_type, reap
             keep_guessing = False
             reappend = True
         elif (answer.upper() == "H" or answer.upper() == "HINT"):
-            hint_levels = produce_hint(correct_answers[0], hint_levels)
+            hint_levels = give_hint(correct_answers[0], hint_levels)
             needed_help = True
         elif (answer.upper() == "Q" or answer.upper() == "QUIT"):
             keep_guessing = False
@@ -96,15 +115,13 @@ def get_answer(correct_answers, row_number, available_numbers, answer_type, reap
                 needed_help = True
     return [available_numbers, user_continue, reappend, needed_help]
 
-def produce_hint(correct_answer, hint_levels):
-
+def give_hint(correct_answer, hint_levels):
     if (hint_levels % 2 == 0):
         if (hint_levels <= (len(correct_answer)/2)):
             hint_levels += 1
     else:
-        if (hint_levels <= math.floor((len(correct_answer)/2))):
+        if (hint_levels <= floor((len(correct_answer)/2))):
             hint_levels += 1
-
     unmasked_positions = []
     for hint_level in range(hint_levels):
         if (hint_level % 2 == 0):
@@ -122,8 +139,7 @@ def produce_hint(correct_answer, hint_levels):
 
     return hint_levels
 
-def get_sheet(sheet_names):
-    print("Number of Sheets: ", len(sheet_names))
+def get_sheet(sheet_naes):
     sheet_number = 1
     if (len(sheet_names) > 1):
         print("Sheet Names: ")
@@ -152,18 +168,10 @@ def get_sheet(sheet_names):
 def give_description(row_values):
     # if there is a picture, display it
     if (row_values[2] != ""):
-        picture_description(row_values[2])
+        print("Here is the picture: ")
+        Image.open(row_values[2]).show()
     # if there is a text description, display it
     if (row_values[1] != ""):
-        text_description(row_values[1])
-    return
-
-def picture_description(image_link):
-    print("Here is the picture: ")
-    Image.open(image_link).show()
-    return
-
-def text_description(text):
-    print(Fore.CYAN + "Here is the description:" + Fore.RESET)
-    print(text)
+        print(Fore.CYAN + "Here is the description:" + Fore.RESET)
+        print(row_values[1])
     return
