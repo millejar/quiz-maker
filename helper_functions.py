@@ -139,7 +139,7 @@ def give_hint(correct_answer, hint_levels):
 
     return hint_levels
 
-def get_sheet(sheet_naes):
+def get_sheet(sheet_names):
     sheet_number = 1
     if (len(sheet_names) > 1):
         print("Sheet Names: ")
